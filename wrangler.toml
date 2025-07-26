@@ -1,5 +1,6 @@
 name = "landb"
-compatibility_date = "2024-05-26"
+compatibility_date = "2025-07-26"
 
-[site]
-bucket = "./public"
+[assets]
+directory = "./public/"
+not_found_handling = "single-page-application"
