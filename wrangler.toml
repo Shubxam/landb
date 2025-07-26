@@ -1,15 +1,14 @@
 name = "loomsandbunkars"
+main = "src/index.js"
 compatibility_date = "2025-07-26"
 
 [assets]
 directory = "./public/"
-not_found_handling = "single-page-application"
+binding = "ASSETS"
 
 [observability.logs]
 enabled = true
 
-[env.production.send_email]
-CONTACT_EMAIL = { destination_address = "shubxam@gmail.com" }
-
-[env.preview.send_email]
-CONTACT_EMAIL = { destination_address = "shubxam@gmail.com" }
+[[send_email]]
+name = "CONTACT_EMAIL"
+destination_address = "shubxam@gmail.com"

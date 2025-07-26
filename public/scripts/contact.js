@@ -28,15 +28,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify(data)
             });
 
-            const result = await response.json();
-            console.log('Response:', result);
+            console.log('Response status:', response.status);
+            console.log('Response headers:', Object.fromEntries(response.headers));
+
+            const responseText = await response.text();
+            console.log('Raw response:', responseText);
+
+            let result;
+            try {
+                result = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                console.log('Response was not JSON:', responseText);
+                throw new Error(`Server returned non-JSON response: ${responseText.substring(0, 100)}`);
+            }
+
+            console.log('Parsed result:', result);
 
             if (response.ok && result.success) {
                 statusDiv.className = 'form-status success';
                 statusDiv.textContent = 'Thank you for your message! We\'ll get back to you soon.';
                 form.reset();
             } else {
-                throw new Error(result.message || 'Failed to send message');
+                throw new Error(result.message || `HTTP ${response.status}: Failed to send message`);
             }
         } catch (error) {
             console.error('Form submission error:', error);
