@@ -1,6 +1,9 @@
-name = "landb"
+name = "loomsandbunkars"
 compatibility_date = "2025-07-26"
 
 [assets]
 directory = "./public/"
 not_found_handling = "single-page-application"
+
+[observability.logs]
+enabled = true
