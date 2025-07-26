@@ -7,3 +7,7 @@ not_found_handling = "single-page-application"
 
 [observability.logs]
 enabled = true
+
+[[send_email]]
+name = "CONTACT_EMAIL"
+destination_address = "shubxam@gmail.com"
