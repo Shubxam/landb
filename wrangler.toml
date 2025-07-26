@@ -1,0 +1,6 @@
+name = "landb"
+main = "public/index.html"
+compatibility_date = "2025-07-26"
+
+[site]
+bucket = "./public"
