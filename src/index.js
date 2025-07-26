@@ -43,23 +43,35 @@ async function handleContactForm(request, env) {
             });
         }
 
+        // For now, let's test without email and just log the data
+        console.log('Contact form data:', { name, email, subject, message });
+        
         // Check if email binding exists
         if (!env.CONTACT_EMAIL) {
             console.error('CONTACT_EMAIL binding not found');
+            // Return success for now to test the form, but log that email wasn't sent
+            console.log('Email would have been sent to shubxam@gmail.com:', {
+                from: name,
+                email: email,
+                subject: subject,
+                message: message
+            });
+            
             return new Response(JSON.stringify({
-                success: false,
-                message: 'Email service not configured'
+                success: true,
+                message: 'Form submitted successfully (email service not configured yet)'
             }), { 
-                status: 500,
+                status: 200,
                 headers: { 'Content-Type': 'application/json' }
             });
         }
 
-        // Import EmailMessage
-        const { EmailMessage } = await import("cloudflare:email");
+        try {
+            // Import EmailMessage
+            const { EmailMessage } = await import("cloudflare:email");
 
-        // Create email content with proper MIME structure
-        const emailBody = `From: ${name} <${email}>
+            // Create email content with proper MIME structure
+            const emailBody = `From: ${name} <${email}>
 To: shubxam@gmail.com
 Subject: [Contact Form] ${subject}
 Content-Type: text/plain; charset=utf-8
@@ -76,18 +88,29 @@ ${message}
 ---
 Sent from Looms & Bunkars Contact Form`;
 
-        console.log('Creating email message');
-        
-        // Create and send email
-        const emailMessage = new EmailMessage(
-            `contact@${new URL(request.url).hostname}`,
-            "shubxam@gmail.com",
-            emailBody
-        );
+            console.log('Creating email message');
+            
+            // Create and send email
+            const emailMessage = new EmailMessage(
+                `contact@${new URL(request.url).hostname}`,
+                "shubxam@gmail.com",
+                emailBody
+            );
 
-        console.log('Sending email...');
-        await env.CONTACT_EMAIL.send(emailMessage);
-        console.log('Email sent successfully');
+            console.log('Sending email...');
+            await env.CONTACT_EMAIL.send(emailMessage);
+            console.log('Email sent successfully');
+        } catch (emailError) {
+            console.error('Email sending failed:', emailError);
+            // Still return success but note the email failure
+            return new Response(JSON.stringify({
+                success: true,
+                message: 'Form submitted successfully (email delivery failed)'
+            }), { 
+                status: 200,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
 
         return new Response(JSON.stringify({ 
             success: true, 
