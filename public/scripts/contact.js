@@ -28,16 +28,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify(data)
             });
 
-            if (response.ok) {
+            const result = await response.json();
+            console.log('Response:', result);
+
+            if (response.ok && result.success) {
                 statusDiv.className = 'form-status success';
                 statusDiv.textContent = 'Thank you for your message! We\'ll get back to you soon.';
                 form.reset();
             } else {
-                throw new Error('Failed to send message');
+                throw new Error(result.message || 'Failed to send message');
             }
         } catch (error) {
+            console.error('Form submission error:', error);
             statusDiv.className = 'form-status error';
-            statusDiv.textContent = 'Sorry, there was an error sending your message. Please try again.';
+            statusDiv.textContent = 'Sorry, there was an error sending your message. Please try again. Error: ' + error.message;
         }
 
         submitButton.disabled = false;

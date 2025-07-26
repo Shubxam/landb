@@ -8,6 +8,8 @@ not_found_handling = "single-page-application"
 [observability.logs]
 enabled = true
 
-[[send_email]]
-name = "CONTACT_EMAIL"
-destination_address = "shubxam@gmail.com"
+[env.production.send_email]
+CONTACT_EMAIL = { destination_address = "shubxam@gmail.com" }
+
+[env.preview.send_email]
+CONTACT_EMAIL = { destination_address = "shubxam@gmail.com" }

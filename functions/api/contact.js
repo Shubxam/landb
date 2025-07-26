@@ -1,11 +1,12 @@
-import { EmailMessage } from "cloudflare:email";
-
 export async function onRequestPost(context) {
     const { request, env } = context;
     
     try {
+        console.log('Contact form endpoint hit');
         const data = await request.json();
         const { name, email, subject, message } = data;
+
+        console.log('Form data received:', { name, email, subject });
 
         // Basic validation
         if (!name || !email || !subject || !message) {
@@ -18,8 +19,21 @@ export async function onRequestPost(context) {
             return new Response('Invalid email format', { status: 400 });
         }
 
-        // Create email content
-        const emailContent = `
+        // Check if email binding exists
+        if (!env.CONTACT_EMAIL) {
+            console.error('CONTACT_EMAIL binding not found');
+            return new Response('Email service not configured', { status: 500 });
+        }
+
+        // Import EmailMessage dynamically to avoid import issues
+        const { EmailMessage } = await import("cloudflare:email");
+
+        // Create email content with proper MIME structure
+        const emailBody = `From: ${name} <${email}>
+To: shubxam@gmail.com
+Subject: [Contact Form] ${subject}
+Content-Type: text/plain; charset=utf-8
+
 New contact form submission from Looms & Bunkars website:
 
 Name: ${name}
@@ -30,49 +44,37 @@ Message:
 ${message}
 
 ---
-Sent from Looms & Bunkars Contact Form
-        `.trim();
+Sent from Looms & Bunkars Contact Form`;
 
+        console.log('Creating email message');
+        
         // Create and send email
         const emailMessage = new EmailMessage(
-            "noreply@loomsandbunkars.com", // sender (your domain)
-            "shubxam@gmail.com", // recipient
-            emailContent
+            `contact@${new URL(request.url).hostname}`, // Use the actual domain
+            "shubxam@gmail.com",
+            emailBody
         );
 
+        console.log('Sending email...');
         await env.CONTACT_EMAIL.send(emailMessage);
+        console.log('Email sent successfully');
 
-        // Send auto-reply to the user
-        const autoReplyContent = `
-Dear ${name},
-
-Thank you for contacting Looms & Bunkars! We have received your message and will get back to you as soon as possible.
-
-Your message:
-Subject: ${subject}
-${message}
-
-We appreciate your interest in our handwoven Banarasi sarees and our mission to support the artisans of Banaras.
-
-Best regards,
-The Looms & Bunkars Team
-
----
-This is an automated response. Please do not reply to this email.
-        `.trim();
-
-        const autoReply = new EmailMessage(
-            "noreply@loomsandbunkars.com",
-            email,
-            autoReplyContent
-        );
-
-        await env.CONTACT_EMAIL.send(autoReply);
-
-        return new Response('Message sent successfully', { status: 200 });
+        return new Response(JSON.stringify({ 
+            success: true, 
+            message: 'Message sent successfully' 
+        }), { 
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+        });
 
     } catch (error) {
         console.error('Contact form error:', error);
-        return new Response('Internal server error', { status: 500 });
+        return new Response(JSON.stringify({ 
+            success: false, 
+            message: 'Internal server error: ' + error.message 
+        }), { 
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
 }
